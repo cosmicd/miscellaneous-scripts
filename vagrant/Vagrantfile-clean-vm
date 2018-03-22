@@ -1,0 +1,25 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# Use this vagrantfile to start your vm when planning to create a 
+# clean vbox from the vm.
+# Copy this vagrant file to the directory of the existing vm 
+# (you should keep a copy of the original vagrantfile for the 
+# existing vm) and run vagrant up to clean the machine. You may have 
+# to change hostname uname, box name,  and script path.
+vmname = 'youvmname' 
+uname = 'ubuntu'
+ 
+pswd="yourpassword" # from /.vagrant.d/boxes/ubuntu-VAGRANTSLASH-xenial64/20170311.0.0‌​/virtualbox/Vagrantile
+Vagrant.configure("2") do |config|
+  config.vm.box = "boxname"
+  config.ssh.username = uname
+  config.ssh.password = pswd  
+  config.vm.define vmname do |machine|
+      machine.vm.hostname = "%s.local" % vmname 
+      machine.vm.synced_folder ".", "/vagrant", disabled: true
+  end
+  config.vm.provider "virtualbox" do |vb|
+      vb.name = vmname
+      vb.customize [ "modifyvm", :id, "--uartmode1", "disconnected" ]
+  end  
+end

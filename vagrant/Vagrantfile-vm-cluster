@@ -1,0 +1,46 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+# example vagrant file to create a cluster of vms 
+hosts = { machine-name, ip_part
+"vm1" => "10",
+  "vm2" => "11",
+  "vm3" => "12"
+}
+uname = 'ubuntu'
+pswd="yourpswd" # from /.vagrant.d/boxes/ubuntu-VAGRANTSLASH-xenial64/20170311.0.0‌​/virtualbox/Vagrantile
+provscript = '/path/to/provision/script/provision.sh'
+Vagrant.configure("2") do |config|
+    config.vm.box = "yourboxname" # this box is here: C:\Users\....\.vagrant.d\boxes;
+    config.vm.box_check_update = false
+    config.ssh.username = uname
+    #config.ssh.password = pswd
+    #config.ssh.insert_key ='true'
+    #config.ssh.private_key_path = 'C:\Users\username\.vagrant.d\boxes\wagtail-jessie64\1.0.0\virtualbox\vagrant_private_key'
+    #config.ssh.private_key_path ='vagrant_private_key' 
+    config.vm.boot_timeout= 3000 # default 300 sec
+    config.ssh.forward_agent = true          
+    #config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+    hosts.each do |name, ip_part|
+        config.vm.define name do |machine|
+            ip = "192.168.33."+ip_part
+            machine.vm.hostname = "%s.local" % name
+            machine.vm.network "private_network", ip: ip
+            # In case forwarding a particular port:
+            # PostgreSQL
+            #machine.vm.network "forwarded_port", guest: 5432, host: 5432
+            # or forward a set of ports
+            #(8000..8050).each do |port|
+            #    machine.vm.network "forwarded_port", guest: "#{port}", host: "#{port}"
+            #end    
+            machine.vm.synced_folder ".", "/vagrant", disabled: true
+            machine.vm.synced_folder "/path/to/folder", "/home/" + uname + "/foldername"
+            machine.vm.provider "virtualbox" do |vb|
+                vb.name = name
+                vb.customize ["modifyvm", :id, "--memory", 1024]
+                vb.customize [ "modifyvm", :id, "--uartmode1", "disconnected" ]
+                #vb.linked_clone = true # this means share the base-box layer/space among the cluster vms
+            end   
+            #machine.vm.provision :shell, privileged: "false", path: provscript # check your scripts first before uncommenting!
+        end
+    end
+end 
